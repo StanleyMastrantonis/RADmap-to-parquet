@@ -1,0 +1,54 @@
+---
+title: "RADmap"
+author: "Stanley Mastrantonis"
+date: '2022-06-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(raster)
+library(arrow)
+library(terra)
+library(rgdal)
+library(stars)
+library(sf)
+library(fs)
+```
+
+
+```{r read in, include=TRUE}
+files = list.files('C:/Users/00097030/LocalData/Spatial Data/RADmap/Tiff/clipped',
+                   full.names = TRUE, pattern = '*.tif$')
+
+WA = shapefile('C:/Users/00097030/LocalData/Spatial Data/Australia States/WA.shp')
+WA_WGS = spTransform(WA, CRS('+proj=longlat +datum=WGS84 +no_defs'))
+WA_vect = terra::vect(WA_WGS, crs='+proj=longlat +datum=WGS84 +no_defs')
+
+rgb_brick = brick(files[4])
+spatR = terra::rast(rgb_brick)
+rgb_crop = terra::crop(spatR, WA_vect)
+crop_brick = brick()
+
+terra::plotRGB(rgb_brick)
+
+
+```
+
+
+
+```{r raster to parquet, include=TRUE}
+
+soil = terra::as.data.frame(rgb_crop, xy = TRUE)
+parquet = tempfile(fileext = ".parquet")
+arrow::write_parquet(soil, sink = parquet)
+
+read_par = read_parquet('C:/Users/00097030/LocalData/parquet/file5c1c3332622.parquet')
+
+
+```
+
+
+
+
+
